@@ -62,7 +62,8 @@ bin/
   lock <tool>         record the sha256 of every download, and the commit of a git source
   fetch               download one entry and check its sha256
   plan                the CI matrix
-  validate            check recipes, shellcheck, actionlint, pinned actions
+  validate            check recipes, shellcheck, actionlint, pinned actions, docs/feature-map.md
+.lefthook/pre-push/validate  bin/validate on each pushed commit, in a clean worktree
 .github/workflows/
   ci.yml              every push: lint, then build and test what changed (read-only)
   release.yml         manual: release recipes at their current version
@@ -72,7 +73,7 @@ bin/
   _release.yml        _build, then _publish
 ```
 
-Run `mise install` for the repo's own tools.
+Run `mise install` for the repo's own tools and its git hooks: before every push, `.lefthook/pre-push/validate` runs `bin/validate` on each pushed commit in a clean worktree.
 
 **Releases.** A tag is `<tool>-<version>`, plus `-<revision>` when the same upstream version is rebuilt. Each release has a `<tag>-<target>.tar.gz` per target with a `.sha256` beside it, holding `bin/`, the upstream `LICENSE` and `licenses/` for anything bundled. Each carries a GitHub artifact attestation: `gh attestation verify <archive> --repo aysnc-labs/prebuilt-binaries`.
 

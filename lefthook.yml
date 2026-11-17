@@ -1,0 +1,6 @@
+# Git hooks. mise install runs lefthook install (mise.toml [hooks])
+pre-push:
+  scripts:
+    "validate":
+      runner: bash
+      use_stdin: true

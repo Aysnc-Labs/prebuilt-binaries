@@ -46,6 +46,12 @@ Purpose: Neon's proxy with the Postgres auth backend, for local development
 Entry: `mise.toml`: `"github:aysnc-labs/prebuilt-binaries" = ["neon-proxy-<version>"]`
 Paths: recipes/neon-proxy/
 
+### Redis
+
+Purpose: Redis server and CLI, proven against the Laravel, Next.js and NestJS clients
+Entry: `mise.toml`: `"github:aysnc-labs/prebuilt-binaries" = ["redis-<version>"]`
+Paths: recipes/redis/
+
 ## Building
 
 ### Local build and test

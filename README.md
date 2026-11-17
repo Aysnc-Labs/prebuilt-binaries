@@ -1,20 +1,44 @@
-# Aysnc Prebuilt Binaries
+<div align="center">
 
-PHP, PostgreSQL and more, built from source, tested and signed, ready to install with [mise](https://mise.jdx.dev).
+<a href="https://github.com/Aysnc-Labs"><img src="https://avatars.githubusercontent.com/u/216275417?s=200" alt="Aysnc Labs" width="72"></a>
 
-| Tool | Version |
-|---|---|
-| [PHP](recipes/php) | 8.5, static, WordPress and Laravel extensions |
-| [PostgreSQL](recipes/postgres) | 18, with PostGIS, TimescaleDB, pgvector and more |
-| [neon-proxy](recipes/neon-proxy) | Neon's local proxy |
+<h1>Prebuilt Binaries</h1>
 
-macOS arm64, Linux x64 and Linux arm64.
+Prebuilt binaries for [mise](https://mise.jdx.dev), built from source, tested,<br>
+and signed with a GitHub artifact attestation.
+
+<br>
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Install with mise](https://img.shields.io/badge/install%20with-mise-black)](https://mise.jdx.dev)
+
+<sub>macOS arm64 &nbsp;·&nbsp; Linux x64 &nbsp;·&nbsp; Linux arm64</sub>
+
+</div>
+
+---
+
+## Installation
+
+Add the tools to your `mise.toml`, each pinned to a release tag:
 
 ```toml
 [tools]
 "github:aysnc-labs/prebuilt-binaries" = ["php-8.5.12", "postgres-18.7"]
 ```
 
-Pin a tag. Tags update nightly; see [releases](https://github.com/aysnc-labs/prebuilt-binaries/releases). In GitHub Actions, grant `attestations: read`.
+A nightly job releases new upstream versions as new tags. The [releases page](https://github.com/aysnc-labs/prebuilt-binaries/releases) lists the current tags.
 
-To add a tool, see [CONTRIBUTING.md](CONTRIBUTING.md). MIT; each tool keeps its own licence.
+In GitHub Actions, grant the job `attestations: read`, because mise checks the attestation when it installs.
+
+To check an archive by hand, run `gh attestation verify <archive> --repo aysnc-labs/prebuilt-binaries`.
+
+## Tools
+
+| Tool | What it contains |
+|---|---|
+| [PHP](recipes/php) | PHP CLI and FPM, static, with the extensions WordPress and Laravel use |
+| [PostgreSQL](recipes/postgres) | PostgreSQL with its contrib modules, PostGIS, TimescaleDB, pgvector and more |
+| [neon-proxy](recipes/neon-proxy) | Neon's proxy, with the Postgres auth backend for local development |
+
+Each tool keeps its own license.

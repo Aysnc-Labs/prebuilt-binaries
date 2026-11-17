@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# lefthook's pre-push, a script so it runs on every push (lefthook skips a `run` job when it
+# finds no pushed files). Runs bin/validate on each commit being pushed, in a clean worktree with the
+# tools that commit's mise.toml pins, so uncommitted or untracked files and the shell's PATH can't
+# change the result. Reads git's pre-push lines from stdin: <local ref> <local sha> <remote ref> <remote sha>.
+set -euo pipefail
+# shellcheck source=lib/common.sh
+source "$(dirname "$0")/../../lib/common.sh"
+zero=0000000000000000000000000000000000000000
+tmp="$(mktemp -d)"
+trap 'git -C "$ROOT" worktree remove --force "$tmp/tree" 2>/dev/null || true; rm -rf "$tmp"' EXIT
+
+checked=" "
+while read -r _ sha _ _; do
+  [ "$sha" != "$zero" ] || continue
+  case "$checked" in *" $sha "*) continue ;; esac
+  checked+="$sha "
+  echo "bin/validate on $(git -C "$ROOT" log -1 --format='%h %s' "$sha")"
+  git -C "$ROOT" worktree add --quiet --detach "$tmp/tree" "$sha"
+  (cd "$tmp/tree" && MISE_TRUSTED_CONFIG_PATHS="$tmp/tree" mise exec -- bin/validate)
+  git -C "$ROOT" worktree remove --force "$tmp/tree"
+done

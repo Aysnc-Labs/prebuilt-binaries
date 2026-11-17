@@ -1,0 +1,23 @@
+# Coding standards
+
+The judgement calls `code-review` applies to every diff in Prebuilt Binaries. A rule a tool can check belongs in the tool: when one here turns mechanical, move it to the table with its enforcer.
+
+## Review rules
+
+Each rule cites its source, so a reviewer can tell when it has gone stale.
+
+1. **Keep the glibc floor.** Link statically, or against the oldest glibc a runner offers: a diff that raises the floor says why. ([CONTRIBUTING.md](CONTRIBUTING.md), "Adding a tool" step 2)
+2. **Smoke test for real.** When `--version` proves little, `test.sh` makes the binaries do their job: serve a query, load each extension. ([CONTRIBUTING.md](CONTRIBUTING.md), step 3)
+3. **Ship every licence.** `$OUT/LICENSE` is upstream's, and every bundled library has its licence in `$OUT/licenses/`. `lib/bundle.py` covers the shared libraries it copies; `build.sh` adds the ones linked statically. ([CONTRIBUTING.md](CONTRIBUTING.md), step 2; `recipes/php/build.sh`)
+
+## Enforced by tools
+
+| Rule | Enforcer | Where |
+|---|---|---|
+| Recipe fields present, `name` matches its folder, known targets, executable scripts | `bin/validate` | `bin/validate` |
+| Every download has a `sha256`, every git source a `commit` | `bin/validate`, `bin/fetch` | `bin/validate`, `bin/fetch` |
+| Shell lint | shellcheck | `bin/validate` |
+| No `\| grep -q` under pipefail | `bin/validate` | `bin/validate` |
+| Workflow lint | actionlint | `bin/validate` |
+| Actions pinned to a commit SHA | `bin/validate` | `bin/validate` |
+| Feature map current and covering every module | check-feature-map | `scripts/check-feature-map.ts` |

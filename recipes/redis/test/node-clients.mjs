@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { Redis } from 'ioredis';
-import { createClient } from 'redis';
+import { createClient, SCHEMA_FIELD_TYPE } from 'redis';
 import { Queue, Worker } from 'bullmq';
 
 const port = Number(process.env.REDIS_PORT);
@@ -22,6 +22,17 @@ assert.equal(await message, 'posts');
 await client.hSet('cache:page', { body: '<html>', tags: 'posts' });
 assert.equal(await client.hGet('cache:page', 'body'), '<html>');
 console.log('node-redis: ok');
+
+await client.json.set('doc:1', '$', { title: 'Hello', tags: ['posts'], views: 3 });
+assert.deepEqual(await client.json.get('doc:1', { path: '$.views' }), [3]);
+await client.ft.create('idx:docs', {
+  '$.title': { type: SCHEMA_FIELD_TYPE.TEXT, AS: 'title' },
+  '$.tags[*]': { type: SCHEMA_FIELD_TYPE.TAG, AS: 'tags' },
+}, { ON: 'JSON', PREFIX: 'doc:' });
+const found = await client.ft.search('idx:docs', '@tags:{posts} hello');
+assert.equal(found.total, 1);
+assert.equal(found.documents[0].id, 'doc:1');
+console.log('node-redis JSON and Search: ok');
 
 const queue = new Queue('smoke', { connection });
 const worker = new Worker('smoke', async (job) => job.data.n * 2, { connection });

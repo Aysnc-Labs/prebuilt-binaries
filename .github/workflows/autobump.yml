@@ -24,6 +24,7 @@ jobs:
       bumps: ${{ steps.bump.outputs.bumps }}
     env:
       GITHUB_TOKEN: ${{ github.token }}
+      GH_TOKEN: ${{ github.token }}
       RECIPES: ${{ inputs.recipes || 'all' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -36,14 +37,23 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           if [ "$RECIPES" = all ]; then RECIPES="$(cd recipes && for d in */recipe.yaml; do dirname "$d"; done)"; fi
           bumps='[]'
+          released() { gh release view "$1" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; }
+          add() { bumps="$(jq -c --arg r "$1" --arg s "$2" --argjson p "$3" '. + [{recipe: $r, ref: $s, promote: $p}]' <<<"$bumps")"; }
           for recipe in $RECIPES; do
             git checkout -q main
             tag="$(bin/bump "$recipe")"
-            if [ -z "$tag" ]; then echo "$recipe: up to date"; continue; fi
+            if [ -z "$tag" ]; then
+              tag="$(bin/recipe "$recipe" tag)"
+              if released "$tag"; then echo "$recipe: $tag is up to date and released"; continue; fi
+              echo "$recipe: $tag is on main but not released"
+              add "$recipe" "$(git rev-parse HEAD)" false
+              continue
+            fi
+            if released "$tag"; then echo "::warning::$recipe: $tag is already released"; git checkout -q -- .; continue; fi
             git switch -q -C "autobump/$recipe"
             git commit -qam "Bump $recipe to $tag"
             git push -qf origin "autobump/$recipe"
-            bumps="$(jq -c --arg r "$recipe" --arg s "$(git rev-parse HEAD)" '. + [{recipe: $r, ref: $s}]' <<<"$bumps")"
+            add "$recipe" "$(git rev-parse HEAD)" true
             echo "$recipe: $tag on autobump/$recipe"
           done
           echo "bumps=$bumps" >> "$GITHUB_OUTPUT"
@@ -64,4 +74,13 @@ jobs:
     with:
       recipes: ${{ matrix.recipe }}
       ref: ${{ matrix.ref }}
-      promote: true
+      promote: ${{ matrix.promote }}
+
+  keepalive:
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - run: gh workflow enable autobump.yml --repo "$GITHUB_REPOSITORY"

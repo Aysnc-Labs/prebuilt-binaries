@@ -63,7 +63,7 @@ Every release carries a GitHub artifact attestation: `gh attestation verify <arc
 
 Any recipe that moved is committed to `autobump/<recipe>`, then built, tested and released from there. Then it is installed with mise and cherry-picked onto main. If a build or test fails, main and the releases stay as they were, and the next night tries again.
 
-To release by hand: change the recipe on main, then run `release` with the recipe's name. See [CONTRIBUTING.md](CONTRIBUTING.md) to add a tool.
+A recipe on main whose tag has no release yet, such as a new recipe or a version changed by hand, is released from main the same night. Run autobump by hand to release it sooner. Each run also re-enables its own schedule, which GitHub otherwise turns off after 60 days without commits. See [CONTRIBUTING.md](CONTRIBUTING.md) to add a tool.
 
 ## License
 

@@ -30,6 +30,22 @@ recipe_tag() {
 
 expand() { local s="$2"; echo "${s//\{version\}/$(recipe_get "$1" .version)}"; }
 
+fill() {
+  local recipe=$1 entry=$2 s=$3 path
+  s="$(expand "$recipe" "$s")"
+  s="${s//\{tag\}/$(recipe_get "$recipe" "$entry.tag")}"
+  while [[ "$s" =~ \{(\.[A-Za-z0-9_.-]+)\} ]]; do
+    path="${BASH_REMATCH[1]}"
+    s="${s//\{$path\}/$(recipe_get "$recipe" "$path")}"
+  done
+  echo "$s"
+}
+
+download_entries() {
+  yq -r '[.. | select(tag == "!!map" and has("url")) | path | map(select(. != null) | ".\"" + tostring + "\"") | join("")] | .[]' \
+    "$(recipe_dir "$1")/recipe.yaml"
+}
+
 all_recipes() {
   local d
   for d in "$ROOT"/recipes/*/; do

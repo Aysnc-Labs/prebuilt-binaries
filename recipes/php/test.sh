@@ -35,8 +35,8 @@ echo ok
 echo "== Laravel"
 export COMPOSER_ALLOW_SUPERUSER=1
 cd "$work"
-curl -fsSL --retry 3 -o composer.phar https://getcomposer.org/download/latest-stable/composer.phar
-php composer.phar create-project laravel/laravel app --no-interaction --no-progress --quiet
+"$ROOT/bin/fetch" php .composer "$work/composer.phar"
+php "$work/composer.phar" create-project laravel/laravel app --no-interaction --no-progress --quiet
 cd app
 php artisan migrate --force --no-interaction
 php artisan serve --port=8123 >"$work/serve.log" 2>&1 &

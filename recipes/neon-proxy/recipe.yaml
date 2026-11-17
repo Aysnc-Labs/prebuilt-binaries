@@ -7,6 +7,7 @@ license: Apache-2.0
 source:
   git: https://github.com/neondatabase/neon.git
   ref: release-proxy-{version}
+  commit: 58abce0207943f44ac801aebc4f3d881e90a6894
 binaries: [neon-proxy]
 targets: [macos-arm64, linux-x64, linux-arm64]
 build-deps:

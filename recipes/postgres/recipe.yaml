@@ -6,6 +6,7 @@ homepage: https://www.postgresql.org
 license: PostgreSQL
 source:
   url: https://ftp.postgresql.org/pub/source/v{version}/postgresql-{version}.tar.gz
+  sha256: "19c2dc7d8520e10532d082b43c36c4d2dcc6cd9e40506c6f598e7338f84bbde7"
 binaries: [postgres, psql, initdb, pg_ctl, pg_dump, pg_restore, pg_config, pg_repack]
 targets: [macos-arm64, linux-x64, linux-arm64]
 runners:
@@ -16,25 +17,25 @@ build-deps:
   brew: [openssl@3, icu4c, lz4, zstd, libxml2, libxslt, pkgconf, cmake, geos, proj, json-c, protobuf-c]
 test: [postgres --version, "^postgres \\(PostgreSQL\\) {version}$"]
 extensions:
-  pgvector: {repo: pgvector/pgvector, tag: v0.8.7}
-  pg_cron: {repo: citusdata/pg_cron, tag: v1.6.8}
-  pg_partman: {repo: pgpartman/pg_partman, tag: v5.5.0}
-  pg_hint_plan: {repo: ossc-db/pg_hint_plan, tag: REL18_1_8_1}
-  hypopg: {repo: HypoPG/hypopg, tag: 1.4.5}
-  pgaudit: {repo: pgaudit/pgaudit, tag: "18.0"}
-  pg_repack: {repo: reorg/pg_repack, tag: ver_1.5.3}
-  wal2json: {repo: eulerto/wal2json, tag: wal2json_2_7}
-  timescaledb: {repo: timescale/timescaledb, tag: 2.32.0, build: bootstrap}
-  postgis: {url: "https://download.osgeo.org/postgis/source/postgis-{tag}.tar.gz", tag: 3.7.0, build: configure}
+  pgvector: {url: "https://github.com/pgvector/pgvector/archive/refs/tags/{tag}.tar.gz", tag: v0.8.7, sha256: "cac0b10c360f05b2d521200105ba3697e773d4cd3731f5a915a7e37ebe0bea85"}
+  pg_cron: {url: "https://github.com/citusdata/pg_cron/archive/refs/tags/{tag}.tar.gz", tag: v1.6.8, sha256: "c19ab9bb35406c60fb51ecda993737c083850abe424acb6c1030439d00a1f8e4"}
+  pg_partman: {url: "https://github.com/pgpartman/pg_partman/archive/refs/tags/{tag}.tar.gz", tag: v5.5.0, sha256: "a3f100ae871677f0012579f58542c174900297f664a4ad2be0256e7ee5e33502"}
+  pg_hint_plan: {url: "https://github.com/ossc-db/pg_hint_plan/archive/refs/tags/{tag}.tar.gz", tag: REL18_1_8_1, sha256: "a4fca485e54fe8e67f9104595ab254aee17cf766d0f261666f5079965d225f6a"}
+  hypopg: {url: "https://github.com/HypoPG/hypopg/archive/refs/tags/{tag}.tar.gz", tag: 1.4.5, sha256: "9d1981af0c55ac75ab4e2648e0050ee626c1af4c68b24259e3c744ff5211ce49"}
+  pgaudit: {url: "https://github.com/pgaudit/pgaudit/archive/refs/tags/{tag}.tar.gz", tag: "18.0", sha256: "988e8afeda320ebe0a3e632ef6b6bce5d3a08346c2e100a173a585c9521d1fa5"}
+  pg_repack: {url: "https://github.com/reorg/pg_repack/archive/refs/tags/{tag}.tar.gz", tag: ver_1.5.3, sha256: "9439892c0b7c7575677f61133e5692f3e8cfd5c6688c5db4fb202320c668c745"}
+  wal2json: {url: "https://github.com/eulerto/wal2json/archive/refs/tags/{tag}.tar.gz", tag: wal2json_2_7, sha256: "e6c12d02dc32e4d610dce33ee52ea85a54e12a563e79c4844508b6c061ff07a1"}
+  timescaledb: {url: "https://github.com/timescale/timescaledb/archive/refs/tags/{tag}.tar.gz", tag: 2.32.0, build: bootstrap, sha256: "881b07882719b53b1fe08753a514c5717baaf9644698fd12d58f63a6a86f4ba0"}
+  postgis: {url: "https://download.osgeo.org/postgis/source/postgis-{tag}.tar.gz", tag: 3.7.0, build: configure, sha256: "832bbf50f2b6f57fab053bc9676b3bfe641e5bf966cdcb28c7926f8d4b3c5e04"}
 updates:
   - {field: .version, type: postgres, series: "18"}
-  - {field: .extensions.pgvector.tag, type: git-tag, repo: https://github.com/pgvector/pgvector.git, pattern: '^(v[0-9]+\.[0-9]+\.[0-9]+)$'}
-  - {field: .extensions.pg_cron.tag, type: git-tag, repo: https://github.com/citusdata/pg_cron.git, pattern: '^(v[0-9]+\.[0-9]+\.[0-9]+)$'}
-  - {field: .extensions.pg_partman.tag, type: git-tag, repo: https://github.com/pgpartman/pg_partman.git, pattern: '^(v[0-9]+\.[0-9]+\.[0-9]+)$'}
-  - {field: .extensions.pg_hint_plan.tag, type: git-tag, repo: https://github.com/ossc-db/pg_hint_plan.git, pattern: '^(REL18_[0-9]+_[0-9]+_[0-9]+)$'}
-  - {field: .extensions.hypopg.tag, type: git-tag, repo: https://github.com/HypoPG/hypopg.git, pattern: '^([0-9]+\.[0-9]+\.[0-9]+)$'}
-  - {field: .extensions.pgaudit.tag, type: git-tag, repo: https://github.com/pgaudit/pgaudit.git, pattern: '^(18\.[0-9]+)$'}
-  - {field: .extensions.pg_repack.tag, type: git-tag, repo: https://github.com/reorg/pg_repack.git, pattern: '^(ver_[0-9]+\.[0-9]+\.[0-9]+)$'}
-  - {field: .extensions.wal2json.tag, type: git-tag, repo: https://github.com/eulerto/wal2json.git, pattern: '^(wal2json_[0-9]+_[0-9]+)$'}
-  - {field: .extensions.timescaledb.tag, type: git-tag, repo: https://github.com/timescale/timescaledb.git, pattern: '^([0-9]+\.[0-9]+\.[0-9]+)$'}
-  - {field: .extensions.postgis.tag, type: git-tag, repo: https://github.com/postgis/postgis.git, pattern: '^([0-9]+\.[0-9]+\.[0-9]+)$'}
+  - {field: .extensions.pgvector.tag, type: git-tag, repo: 'https://github.com/pgvector/pgvector.git', pattern: '^(v[0-9]+\.[0-9]+\.[0-9]+)$'}
+  - {field: .extensions.pg_cron.tag, type: git-tag, repo: 'https://github.com/citusdata/pg_cron.git', pattern: '^(v[0-9]+\.[0-9]+\.[0-9]+)$'}
+  - {field: .extensions.pg_partman.tag, type: git-tag, repo: 'https://github.com/pgpartman/pg_partman.git', pattern: '^(v[0-9]+\.[0-9]+\.[0-9]+)$'}
+  - {field: .extensions.pg_hint_plan.tag, type: git-tag, repo: 'https://github.com/ossc-db/pg_hint_plan.git', pattern: '^(REL18_[0-9]+_[0-9]+_[0-9]+)$'}
+  - {field: .extensions.hypopg.tag, type: git-tag, repo: 'https://github.com/HypoPG/hypopg.git', pattern: '^([0-9]+\.[0-9]+\.[0-9]+)$'}
+  - {field: .extensions.pgaudit.tag, type: git-tag, repo: 'https://github.com/pgaudit/pgaudit.git', pattern: '^(18\.[0-9]+)$'}
+  - {field: .extensions.pg_repack.tag, type: git-tag, repo: 'https://github.com/reorg/pg_repack.git', pattern: '^(ver_[0-9]+\.[0-9]+\.[0-9]+)$'}
+  - {field: .extensions.wal2json.tag, type: git-tag, repo: 'https://github.com/eulerto/wal2json.git', pattern: '^(wal2json_[0-9]+_[0-9]+)$'}
+  - {field: .extensions.timescaledb.tag, type: git-tag, repo: 'https://github.com/timescale/timescaledb.git', pattern: '^([0-9]+\.[0-9]+\.[0-9]+)$'}
+  - {field: .extensions.postgis.tag, type: git-tag, repo: 'https://github.com/postgis/postgis.git', pattern: '^([0-9]+\.[0-9]+\.[0-9]+)$'}

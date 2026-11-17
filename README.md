@@ -37,7 +37,9 @@ recipes/
 bin/                  the same commands locally and in CI
   package <recipe>    build and pack for this machine's target, into dist/
   test <recipe> <dir> run the recipe's test command and test.sh
-  bump <recipe>       move pins to the latest upstream
+  bump <recipe>       move pins to the latest upstream, then lock
+  lock <recipe>       record the sha256 of every download, and the commit of a git source
+  fetch               download one entry and check its sha256
   ci <recipe>         what CI does, on this machine; --linux runs it in an sbx sandbox
   plan                the CI matrix
   validate            check recipes, shellcheck, actionlint

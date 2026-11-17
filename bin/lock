@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# shellcheck source=lib/common.sh
+source "$(dirname "$0")/../lib/common.sh"
+[ $# = 1 ] || die "usage: bin/lock <recipe>"
+recipe=$1
+file="$(recipe_dir "$recipe")/recipe.yaml"
+tmp="$(mktemp)"
+trap 'rm -f "$tmp"' EXIT
+
+for entry in $(download_entries "$recipe"); do
+  url="$(fill "$recipe" "$entry" "$(recipe_get "$recipe" "$entry.url")")"
+  curl -fsSL --retry 3 -o "$tmp" "$url"
+  sum="$(sha256 "$tmp" | cut -d' ' -f1)"
+  if [ "$sum" != "$(recipe_get "$recipe" "$entry.sha256")" ]; then
+    echo "$recipe: $entry $sum" >&2
+    V="$sum" yq -i "$entry.sha256 = strenv(V)" "$file"
+  fi
+done
+
+git_url="$(recipe_get "$recipe" .source.git)"
+if [ -n "$git_url" ]; then
+  ref="$(expand "$recipe" "$(recipe_get "$recipe" .source.ref)")"
+  refs="$(git ls-remote "$git_url" "refs/tags/$ref" "refs/tags/$ref^{}" "refs/heads/$ref")"
+  commit="$(grep -F '^{}' <<<"$refs" | cut -f1 || true)"
+  [ -n "$commit" ] || commit="$(head -1 <<<"$refs" | cut -f1)"
+  [ -n "$commit" ] || die "$recipe: $ref not found in $git_url"
+  if [ "$commit" != "$(recipe_get "$recipe" .source.commit)" ]; then
+    echo "$recipe: .source.commit $commit" >&2
+    V="$commit" yq -i '.source.commit = strenv(V)' "$file"
+  fi
+fi

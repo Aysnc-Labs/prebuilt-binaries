@@ -6,19 +6,14 @@ spc_version="$(recipe .spc.version)"
 exts="$(recipe '.spc.extensions | join(",")')"
 libs="$(recipe '.spc.libs | join(",")')"
 
-case "$TARGET" in
-  macos-arm64) spc_asset="spc-macos-aarch64" ;;
-  linux-x64) spc_asset="spc-linux-x86_64" ;;
-  linux-arm64) spc_asset="spc-linux-aarch64" ;;
-  *) echo "php: no spc for $TARGET" >&2; exit 1 ;;
-esac
 
 mkdir -p "$WORK/spc" "$CACHE/downloads" "$CACHE/spc-$spc_version"
 spc="$CACHE/spc-$spc_version/spc"
 if [ ! -x "$spc" ]; then
-  curl -fsSL --retry 3 "https://github.com/crazywhalecc/static-php-cli/releases/download/$spc_version/$spc_asset.tar.gz" |
-    tar -xz -C "$CACHE/spc-$spc_version"
+  "$ROOT/bin/fetch" php ".spc.downloads.\"$TARGET\"" "$WORK/spc.tar.gz"
+  tar -xzf "$WORK/spc.tar.gz" -C "$CACHE/spc-$spc_version"
 fi
+"$ROOT/bin/fetch" php .php-src "$WORK/php-$VERSION.tar.xz"
 cd "$WORK/spc"
 ln -sfn "$CACHE/downloads" downloads
 
@@ -35,7 +30,7 @@ else
 fi
 
 "$spc" download --for-extensions="$exts" --for-libs="$libs" --retry=3 \
-  --custom-url="php-src:https://www.php.net/distributions/php-$VERSION.tar.xz"
+  --custom-url="php-src:file://$WORK/php-$VERSION.tar.xz"
 "$spc" build "$exts" --with-libs="$libs" --build-cli --build-fpm
 "$spc" dump-license --for-extensions="$exts" --for-libs="$libs" --dump-dir="$OUT/licenses"
 

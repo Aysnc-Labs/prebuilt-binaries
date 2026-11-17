@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# shellcheck source=lib/common.sh
+source "$(dirname "$0")/../lib/common.sh"
+[ $# = 3 ] || die "usage: bin/fetch <recipe> <entry path, e.g. .source> <destination file>"
+recipe=$1 entry=$2 dest=$3
+url="$(fill "$recipe" "$entry" "$(recipe_get "$recipe" "$entry.url")")"
+want="$(recipe_get "$recipe" "$entry.sha256")"
+[ -n "$url" ] || die "$recipe: $entry has no url"
+[ -n "$want" ] || die "$recipe: $entry has no sha256; run bin/lock $recipe"
+mkdir -p "$(dirname "$dest")"
+curl -fsSL --retry 3 -o "$dest.part" "$url"
+got="$(sha256 "$dest.part" | cut -d' ' -f1)"
+[ "$got" = "$want" ] || { rm -f "$dest.part"; die "$recipe: $url has sha256 $got, expected $want"; }
+mv "$dest.part" "$dest"

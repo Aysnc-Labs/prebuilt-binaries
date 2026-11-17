@@ -12,6 +12,7 @@
    source:
      git: https://github.com/owner/repo.git
      ref: v{version}
+     commit: 0123…
    binaries: [my-tool]
    targets: [macos-arm64, linux-x64, linux-arm64]
    build-deps:
@@ -27,7 +28,9 @@
    ```
 
    - `version` is upstream's; the tag is `my-tool-1.2.3`. Raise `revision` to rebuild the same version (`my-tool-1.2.3-1`).
-   - `source` is optional: a `git` repo and `ref`, or a tarball `url`. It's fetched into `$SRC` before `build.sh` runs, with `{version}` replaced.
+   - `source` is optional: a `git` repo, `ref` and the `commit` that ref must be, or a tarball `url` and its `sha256`. It's fetched into `$SRC` before `build.sh` runs, with `{version}` replaced.
+   - Every other download is an entry with a `url` and a `sha256`, fetched with `bin/fetch <tool> <entry path> <file>`, which refuses a file that doesn't match. A url can use `{version}`, the entry's `{tag}`, and any field as `{.path.to.field}`.
+   - `bin/lock <tool>` fills in every `sha256` and `commit`. `bin/bump` runs it after moving a pin, and `bin/validate` fails on a missing one.
    - `runners` is optional: a runner per target, overriding `recipes/targets.yaml` (e.g. an older Ubuntu for an older glibc floor).
    - `targets` come from `recipes/targets.yaml`. `build-deps` (apt, brew) is optional.
    - `cache` is optional: `rust` keeps cargo's `target/`, `dir` keeps `$CACHE`.

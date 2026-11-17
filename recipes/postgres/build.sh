@@ -25,11 +25,10 @@ make install-world-bin
 export PATH="$OUT/bin:$PATH" LD_LIBRARY_PATH="$OUT/lib"
 pg_config="$OUT/bin/pg_config"
 for ext in $(recipe '.extensions | keys | .[]'); do
-  repo="$(recipe ".extensions.$ext.repo")" tag="$(recipe ".extensions.$ext.tag")"
-  url="$(recipe ".extensions.$ext.url")" style="$(recipe ".extensions.$ext.build")"
-  [ -n "$url" ] || url="https://github.com/$repo/archive/refs/tags/{tag}.tar.gz"
+  style="$(recipe ".extensions.$ext.build")"
   mkdir -p "$WORK/$ext"
-  curl -fsSL --retry 3 "${url//\{tag\}/$tag}" | tar -xzf - -C "$WORK/$ext" --strip-components=1
+  "$ROOT/bin/fetch" postgres ".extensions.\"$ext\"" "$WORK/$ext.tar.gz"
+  tar -xzf "$WORK/$ext.tar.gz" -C "$WORK/$ext" --strip-components=1
   case "$style" in
     configure)
       (cd "$WORK/$ext" && ./configure --prefix="$OUT" --with-pgconfig="$pg_config" --without-raster --without-sfcgal && make -j"$jobs" && make install)

@@ -22,7 +22,13 @@ for r in $(all_recipes); do
   case "$(recipe_get "$r" .cache)" in "" | rust | dir) ;; *) bad "$r: cache must be rust or dir" ;; esac
   [ -x "$dir/build.sh" ] || bad "$r: build.sh is missing or not executable"
   [ ! -e "$dir/test.sh" ] || [ -x "$dir/test.sh" ] || bad "$r: test.sh is not executable"
-  [ -n "$(recipe_get "$r" .source.git)" ] && [ -z "$(recipe_get "$r" .source.ref)" ] && bad "$r: source.git needs source.ref"
+if [ -n "$(recipe_get "$r" .source.git)" ]; then
+    [ -n "$(recipe_get "$r" .source.ref)" ] || bad "$r: source.git needs source.ref"
+    [[ "$(recipe_get "$r" .source.commit)" =~ ^[0-9a-f]{40}$ ]] || bad "$r: source.commit is missing; run bin/lock $r"
+  fi
+  for entry in $(download_entries "$r"); do
+    [[ "$(recipe_get "$r" "$entry.sha256")" =~ ^[0-9a-f]{64}$ ]] || bad "$r: $entry has no sha256; run bin/lock $r"
+  done
 done
 
 shellcheck -x bin/* lib/*.sh recipes/*/*.sh || fail=1

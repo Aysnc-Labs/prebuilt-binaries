@@ -23,13 +23,16 @@ if [ -n "$git_url" ]; then
   git -C "$SRC" fetch -q --depth 1 "$git_url" "$ref"
   git -C "$SRC" -c advice.detachedHead=false checkout -qf FETCH_HEAD
   git -C "$SRC" clean -fdq
+  want="$(recipe_get "$recipe" .source.commit)"
+  [ -n "$want" ] || die "$recipe: source.commit is missing; run bin/lock $recipe"
+  got="$(git -C "$SRC" rev-parse HEAD)"
+  [ "$got" = "$want" ] || die "$recipe: $ref is $got upstream, expected $want"
 fi
 url="$(recipe_get "$recipe" .source.url)"
 if [ -n "$url" ]; then
   SRC="$base/src"
-  url="$(expand "$recipe" "$url")"
   rm -rf "$SRC" && mkdir -p "$SRC"
-  curl -fsSL --retry 3 -o "$base/source.tar" "$url"
+  "$ROOT/bin/fetch" "$recipe" .source "$base/source.tar"
   tar -xf "$base/source.tar" -C "$SRC" --strip-components=1
   rm "$base/source.tar"
 fi

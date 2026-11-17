@@ -13,8 +13,9 @@ if ! command -v mise >/dev/null; then
   for i in 1 2 3; do curl -fsSL https://mise.run | sh >/dev/null && break; [ $i = 3 ] && exit 1; sleep 10; done
   export PATH="$HOME/.local/bin:$PATH"
 fi
-mise install -q postgres@18 node@24
-PGBIN="$(mise where postgres@18)/bin"
+postgres="github:aysnc-labs/prebuilt-binaries@$("$ROOT/bin/recipe" postgres tag)"
+mise install -q "$postgres" node@24
+PGBIN="$(mise where "$postgres")/bin"
 NODEBIN="$(mise where node@24)/bin"
 export PATH="$PGBIN:$NODEBIN:$PATH"
 

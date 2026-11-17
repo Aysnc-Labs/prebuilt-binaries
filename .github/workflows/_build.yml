@@ -117,6 +117,9 @@ jobs:
     container: ${{ matrix.test_container }}
     permissions:
       contents: read
+      attestations: read
+    env:
+      GITHUB_TOKEN: ${{ github.token }}
     steps:
       - if: matrix.test_container != ''
         run: apt-get update -qq && apt-get install -y -qq git curl ca-certificates xz-utils >/dev/null

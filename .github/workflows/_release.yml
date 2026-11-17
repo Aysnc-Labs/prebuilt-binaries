@@ -20,6 +20,7 @@ jobs:
     uses: ./.github/workflows/_build.yml
     permissions:
       contents: read
+      attestations: read
     with:
       recipes: ${{ inputs.recipes }}
       ref: ${{ inputs.ref }}

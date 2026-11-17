@@ -44,3 +44,36 @@
 4. Try it: `bin/validate`, then `bin/ci <tool>` on your Mac and `bin/ci <tool> --linux` in a Linux sandbox ([sbx](https://docs.docker.com/ai/sandboxes/)). The sandbox only sees commits.
 
 5. Push a branch. CI builds and tests it on every target. Once it's merged, run the `release` workflow with the tool's name, and add a row to the README's table.
+
+# How it works
+
+```
+recipes/
+  targets.yaml        every target: its runner, and the container tests run in
+  <tool>/
+    recipe.yaml       version, downloads and their sha256, binaries, targets, test, updates
+    build.sh          upstream source -> $OUT/bin
+    test.sh           optional: proves the binaries work for real
+bin/
+  ci <tool>           what CI does, on this machine; --linux runs it in an sbx sandbox
+  package <tool>      build and pack for this machine's target, into dist/
+  test <tool> <dir>   run the recipe's test command and test.sh
+  bump <tool>         move pins to the latest upstream, then lock
+  lock <tool>         record the sha256 of every download, and the commit of a git source
+  fetch               download one entry and check its sha256
+  plan                the CI matrix
+  validate            check recipes, shellcheck, actionlint, pinned actions
+.github/workflows/
+  ci.yml              every push: lint, then build and test what changed (read-only)
+  release.yml         manual: release recipes at their current version
+  autobump.yml        nightly 00:00 UTC, or manual: bump, build, test, release, land on main
+  _build.yml          plan -> build -> test
+  _publish.yml        release and attest -> install with mise -> land on main
+  _release.yml        _build, then _publish
+```
+
+Run `mise install` for the repo's own tools.
+
+**Releases.** A tag is `<tool>-<version>`, plus `-<revision>` when the same upstream version is rebuilt. Each release has a `<tag>-<target>.tar.gz` per target with a `.sha256` beside it, holding `bin/`, the upstream `LICENSE` and `licenses/` for anything bundled. Each carries a GitHub artifact attestation: `gh attestation verify <archive> --repo aysnc-labs/prebuilt-binaries`.
+
+**Updates.** Every night, `bin/bump` checks each recipe's `updates`. A new upstream `version` resets `revision` to 0; any other moved pin raises it by one. A recipe that moved is committed to `autobump/<tool>`, built, tested and released from there, installed with mise, then cherry-picked onto main. A recipe on main whose tag has no release yet is released from main. If anything fails, main and the releases stay as they were. Each run also re-enables its own schedule, which GitHub turns off after 60 days without commits.

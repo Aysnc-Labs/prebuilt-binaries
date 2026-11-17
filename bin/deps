@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# shellcheck source=lib/common.sh
+source "$(dirname "$0")/../lib/common.sh"
+[ $# = 1 ] || die "usage: bin/deps <recipe>"
+if [ "$(uname)" = Darwin ]; then
+  pkgs="$(recipe_get "$1" '.build-deps.brew // [] | join(" ")')"
+  # shellcheck disable=SC2086
+  [ -z "$pkgs" ] || brew install $pkgs
+else
+  pkgs="$(recipe_get "$1" '.build-deps.apt // [] | join(" ")')"
+  sudo=""; [ "$(id -u)" = 0 ] || sudo=sudo
+  # shellcheck disable=SC2086
+  [ -z "$pkgs" ] || { $sudo apt-get update -qq && $sudo apt-get install -y --no-install-recommends $pkgs; }
+fi

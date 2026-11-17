@@ -1,0 +1,21 @@
+name: neon-proxy
+version: "8853"
+revision: 0
+description: Neon's proxy, with the postgres auth backend for local development
+homepage: https://github.com/neondatabase/neon/tree/main/proxy
+license: Apache-2.0
+source:
+  git: https://github.com/neondatabase/neon.git
+  ref: release-proxy-{version}
+binaries: [neon-proxy]
+targets: [macos-arm64, linux-x64, linux-arm64]
+build-deps:
+  apt: [protobuf-compiler, libssl-dev, pkg-config, cmake, clang]
+  brew: [protobuf, cmake]
+cache: rust
+test: [neon-proxy --help, "possible values:.*postgres"]
+updates:
+  - field: .version
+    type: git-tag
+    repo: https://github.com/neondatabase/neon.git
+    pattern: ^release-proxy-([0-9]+)$

@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# shellcheck source=lib/common.sh
+source "$(dirname "$0")/../lib/common.sh"
+[ $# -ge 1 ] || die "usage: bin/ci <recipe> [--linux]"
+recipe=$1 linux="${2:-}"
+recipe_dir "$recipe" >/dev/null
+
+native() {
+  local target; target="$(host_target)"
+  "$ROOT/bin/deps" "$recipe"
+  "$ROOT/bin/package" "$recipe"
+  "$ROOT/bin/test" "$recipe" "$ROOT/.work/$recipe/$target/out"
+}
+
+if [ "$linux" != --linux ]; then
+  native
+  exit 0
+fi
+
+[ -z "$(git -C "$ROOT" status --porcelain)" ] || die "commit first: the sandbox only sees commits"
+sandbox="prebuilt-binaries-ci"
+sandboxes="$(sbx ls 2>/dev/null || true)"
+if ! grep -q "^$sandbox " <<<"$sandboxes"; then
+  (cd "$ROOT" && sbx create --clone --name "$sandbox" shell .)
+fi
+sbx exec "$sandbox" bash -lc "
+  set -euo pipefail
+  cd '$ROOT'
+  git fetch -q /run/sandbox/source HEAD && git reset -q --hard FETCH_HEAD
+  [ ! -d .work ] || sudo chown -R \"\$(id -u):\$(id -g)\" .work
+  command -v mise >/dev/null || curl -fsSL https://mise.run | sh >/dev/null
+  export PATH=\"\$HOME/.local/bin:\$PATH\"
+  mise trust -q mise.toml && mise install -q
+  eval \"\$(mise env -s bash)\"
+  bin/ci '$recipe'
+  echo '== again as root'
+  sudo -E env PATH=\"\$PATH\" bin/test '$recipe' \".work/$recipe/\$(uname -m | sed 's/x86_64/linux-x64/; s/aarch64/linux-arm64/')/out\"
+"

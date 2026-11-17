@@ -1,0 +1,40 @@
+name: release recipes
+
+on:
+  workflow_call:
+    inputs:
+      recipes:
+        type: string
+        required: true
+      ref:
+        type: string
+        default: ''
+      promote:
+        type: boolean
+        default: false
+
+permissions: {}
+
+jobs:
+  build:
+    uses: ./.github/workflows/_build.yml
+    permissions:
+      contents: read
+    with:
+      recipes: ${{ inputs.recipes }}
+      ref: ${{ inputs.ref }}
+      release: true
+
+  publish:
+    needs: build
+    uses: ./.github/workflows/_publish.yml
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+    with:
+      builds: ${{ needs.build.outputs.builds }}
+      recipes: ${{ needs.build.outputs.recipes }}
+      sha: ${{ needs.build.outputs.sha }}
+      promote: ${{ inputs.promote }}

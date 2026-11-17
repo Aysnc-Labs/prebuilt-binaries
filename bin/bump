@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# shellcheck source=lib/common.sh
+source "$(dirname "$0")/../lib/common.sh"
+[ $# = 1 ] || die "usage: bin/bump <recipe>"
+recipe=$1
+file="$(recipe_dir "$recipe")/recipe.yaml"
+
+latest() {
+  local u=".updates[$1]" type
+  type="$(recipe_get "$recipe" "$u.type")"
+  case "$type" in
+    php)
+      curl -fsSL --retry 3 "https://www.php.net/releases/index.php?json&version=$(recipe_get "$recipe" "$u.series")" |
+        jq -r .version
+      ;;
+    postgres)
+      curl -fsSL --retry 3 https://www.postgresql.org/versions.json |
+        jq -r --arg m "$(recipe_get "$recipe" "$u.series")" '.[] | select(.major == $m) | "\(.major).\(.latestMinor)"'
+      ;;
+    git-tag)
+      local pattern; pattern="$(recipe_get "$recipe" "$u.pattern")"
+      git ls-remote --tags --refs "$(recipe_get "$recipe" "$u.repo")" | sed 's|.*refs/tags/||' |
+        grep -E "$pattern" | sed -E "s/$pattern/\1/" | sort -V | tail -1
+      ;;
+    github-release)
+      local auth=()
+      [ -z "${GITHUB_TOKEN:-}" ] || auth=(-H "Authorization: Bearer $GITHUB_TOKEN")
+      curl -fsSL --retry 3 ${auth[@]+"${auth[@]}"} \
+        "https://api.github.com/repos/$(recipe_get "$recipe" "$u.repo")/releases/latest" | jq -r .tag_name
+      ;;
+    *) die "$recipe: unknown update type '$type'" ;;
+  esac
+}
+
+version_changed=false other_changed=false
+count="$(yq -r '.updates | length' "$file")"
+for ((i = 0; i < count; i++)); do
+  field="$(recipe_get "$recipe" ".updates[$i].field")"
+  current="$(recipe_get "$recipe" "$field")"
+  new="$(latest "$i")"
+  [ -n "$new" ] && [ "$new" != null ] || die "$recipe: no latest value for $field"
+  [ "$new" != "$current" ] || continue
+  [ "$(printf '%s\n%s\n' "$current" "$new" | sort -V | tail -1)" = "$new" ] || continue
+  echo "$recipe: $field $current -> $new" >&2
+  V="$new" yq -i "$field = strenv(V)" "$file"
+  if [ "$field" = .version ]; then version_changed=true; else other_changed=true; fi
+done
+
+if $version_changed; then
+  yq -i '.revision = 0' "$file"
+elif $other_changed; then
+  yq -i '.revision += 1' "$file"
+else
+  exit 0
+fi
+recipe_tag "$recipe"

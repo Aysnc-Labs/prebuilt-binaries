@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# shellcheck source=lib/common.sh
+source "$(dirname "$0")/../lib/common.sh"
+cd "$ROOT"
+fail=0
+bad() { echo "✗ $*" >&2; fail=1; }
+
+for r in $(all_recipes); do
+  dir="$ROOT/recipes/$r"
+  [ "$(recipe_get "$r" .name)" = "$r" ] || bad "$r: name must match its folder"
+  for f in .version .description .homepage .license; do
+    [ -n "$(recipe_get "$r" "$f")" ] || bad "$r: $f is required"
+  done
+  [[ "$(recipe_get "$r" '.revision // 0')" =~ ^[0-9]+$ ]] || bad "$r: revision must be a whole number"
+  [ "$(yq -r '.binaries | length' "$dir/recipe.yaml")" -gt 0 ] || bad "$r: binaries is required"
+  [ "$(yq -r '.test | length' "$dir/recipe.yaml")" = 2 ] || bad "$r: test must be [command, regex]"
+  for t in $(recipe_get "$r" '.targets[]'); do
+    [ -n "$(yq -r ".\"$t\".runner // \"\"" "$ROOT/recipes/targets.yaml")" ] || bad "$r: unknown target $t"
+  done
+  [ -n "$(recipe_get "$r" '.targets[0]')" ] || bad "$r: targets is required"
+  case "$(recipe_get "$r" .cache)" in "" | rust | dir) ;; *) bad "$r: cache must be rust or dir" ;; esac
+  [ -x "$dir/build.sh" ] || bad "$r: build.sh is missing or not executable"
+  [ ! -e "$dir/test.sh" ] || [ -x "$dir/test.sh" ] || bad "$r: test.sh is not executable"
+  [ -n "$(recipe_get "$r" .source.git)" ] && [ -z "$(recipe_get "$r" .source.ref)" ] && bad "$r: source.git needs source.ref"
+done
+
+shellcheck -x bin/* lib/*.sh recipes/*/*.sh || fail=1
+if grep -nE '\| *grep -q' bin/* lib/*.sh recipes/*/*.sh .github/workflows/*.yml; then
+  bad "grep -q at the end of a pipe fails under pipefail when the writer is cut off; grep a variable instead"
+fi
+actionlint || fail=1
+unpinned="$(grep -hoE 'uses: [^ ]+' .github/workflows/*.yml | grep -vE '@[0-9a-f]{40}$|uses: \./' || true)"
+[ -z "$unpinned" ] || bad "pin actions to a commit SHA, with the version in a comment: $unpinned"
+[ $fail = 0 ] && echo "All recipes valid."
+exit $fail

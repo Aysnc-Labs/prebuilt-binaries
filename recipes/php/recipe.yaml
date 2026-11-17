@@ -1,0 +1,66 @@
+name: php
+version: 8.5.12
+revision: 0
+description: PHP CLI and FPM with the extensions WordPress and Laravel use
+homepage: https://www.php.net
+license: PHP-3.01
+binaries: [php, php-fpm]
+targets: [macos-arm64, linux-x64, linux-arm64]
+cache: dir
+test: [php -v, "^PHP {version} "]
+spc:
+  version: 2.8.5
+  libs: [freetype, libjpeg, libavif, libwebp]
+  extensions:
+    - bcmath
+    - bz2
+    - calendar
+    - ctype
+    - curl
+    - dom
+    - exif
+    - fileinfo
+    - filter
+    - gd
+    - iconv
+    - igbinary
+    - imagick
+    - intl
+    - ldap
+    - mbstring
+    - memcached
+    - mongodb
+    - msgpack
+    - mysqli
+    - mysqlnd
+    - opcache
+    - openssl
+    - pcntl
+    - pdo
+    - pdo_mysql
+    - pdo_pgsql
+    - pdo_sqlite
+    - pgsql
+    - phar
+    - posix
+    - readline
+    - redis
+    - session
+    - simplexml
+    - soap
+    - sockets
+    - sodium
+    - sqlite3
+    - tokenizer
+    - xml
+    - xmlreader
+    - xmlwriter
+    - zip
+    - zlib
+updates:
+  - field: .version
+    type: php
+    series: "8.5"
+  - field: .spc.version
+    type: github-release
+    repo: crazywhalecc/static-php-cli

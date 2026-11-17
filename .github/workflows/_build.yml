@@ -1,0 +1,135 @@
+name: build
+
+on:
+  workflow_call:
+    inputs:
+      recipes:
+        description: Recipes to build, as bin/plan takes them (names, `all`, or `changed <base ref>`)
+        type: string
+        required: true
+      ref:
+        description: Commit to build. Defaults to the triggering one.
+        type: string
+        default: ''
+      release:
+        description: Fail if a recipe's release tag already exists
+        type: boolean
+        default: false
+    outputs:
+      builds:
+        value: ${{ jobs.plan.outputs.builds }}
+      recipes:
+        value: ${{ jobs.plan.outputs.recipes }}
+      sha:
+        value: ${{ jobs.plan.outputs.sha }}
+
+permissions: {}
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  plan:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    outputs:
+      builds: ${{ steps.plan.outputs.builds }}
+      recipes: ${{ steps.plan.outputs.recipes }}
+      sha: ${{ steps.plan.outputs.sha }}
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RECIPES: ${{ inputs.recipes }}
+      RELEASE: ${{ inputs.release }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: jdx/mise-action@236a21c3b91f5db6d4e174b348674a0f0caac06d # v5.2.9
+      - id: plan
+        run: |
+          # shellcheck disable=SC2086
+          plan="$(bin/plan $RECIPES)"
+          jq . <<<"$plan"
+          if [ "$RELEASE" = true ]; then
+            for tag in $(jq -r '.recipes[].tag' <<<"$plan"); do
+              if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+                echo "::error::$tag is already released. Bump the recipe's version or revision."; exit 1
+              fi
+            done
+          fi
+          {
+            echo "builds=$(jq -c .builds <<<"$plan")"
+            echo "recipes=$(jq -c .recipes <<<"$plan")"
+            echo "sha=$(git rev-parse HEAD)"
+          } >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: plan
+    if: needs.plan.outputs.builds != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.plan.outputs.builds) }}
+    name: build (${{ matrix.recipe }}, ${{ matrix.target }})
+    runs-on: ${{ matrix.runner }}
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.plan.outputs.sha }}
+          persist-credentials: false
+      - uses: jdx/mise-action@236a21c3b91f5db6d4e174b348674a0f0caac06d # v5.2.9
+      - run: bin/deps "${{ matrix.recipe }}"
+      - run: bin/package "${{ matrix.recipe }}" --fetch-only
+      - if: matrix.cache == 'rust'
+        uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        with:
+          workspaces: .work/${{ matrix.recipe }}/${{ matrix.target }}/src
+          key: ${{ matrix.recipe }}-${{ matrix.target }}
+      - if: matrix.cache == 'dir'
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .work/${{ matrix.recipe }}/${{ matrix.target }}/cache
+          key: ${{ matrix.recipe }}-${{ matrix.target }}-${{ hashFiles(format('recipes/{0}/**', matrix.recipe)) }}
+          restore-keys: ${{ matrix.recipe }}-${{ matrix.target }}-
+      - run: bin/package "${{ matrix.recipe }}"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ matrix.recipe }}-${{ matrix.target }}
+          path: dist/*
+          if-no-files-found: error
+
+  test:
+    needs: [plan, build]
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.plan.outputs.builds) }}
+    name: test (${{ matrix.recipe }}, ${{ matrix.target }})
+    runs-on: ${{ matrix.runner }}
+    container: ${{ matrix.test_container }}
+    permissions:
+      contents: read
+    steps:
+      - if: matrix.test_container != ''
+        run: apt-get update -qq && apt-get install -y -qq git curl ca-certificates xz-utils >/dev/null
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.plan.outputs.sha }}
+          persist-credentials: false
+      - uses: jdx/mise-action@236a21c3b91f5db6d4e174b348674a0f0caac06d # v5.2.9
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: ${{ matrix.recipe }}-${{ matrix.target }}
+          path: dist
+      - name: Verify checksum and unpack
+        run: |
+          cd dist
+          sha256sum -c ./*.sha256 2>/dev/null || shasum -a 256 -c ./*.sha256
+          mkdir pkg && tar -xzf ./*.tar.gz -C pkg
+      - run: bin/test "${{ matrix.recipe }}" dist/pkg

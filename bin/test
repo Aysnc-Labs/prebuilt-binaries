@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# shellcheck source=lib/common.sh
+source "$(dirname "$0")/../lib/common.sh"
+[ $# -ge 2 ] || die "usage: bin/test <recipe> <folder holding bin/> [--quick]"
+recipe=$1 quick="${3:-}"
+dir="$(recipe_dir "$recipe")"
+BIN_DIR="$(cd "$2/bin" && pwd)"
+export BIN_DIR PATH="$BIN_DIR:$PATH"
+
+cmd="$(recipe_get "$recipe" '.test[0]')"
+want="$(expand "$recipe" "$(recipe_get "$recipe" '.test[1]')")"
+[ -n "$cmd" ] || die "$recipe has no test"
+echo "\$ $cmd"
+out="$(bash -c "$cmd" 2>&1)" || { echo "$out"; die "'$cmd' failed"; }
+grep -qE -- "$want" <<<"$out" || { echo "$out"; die "'$cmd' output doesn't match /$want/"; }
+echo "matches /$want/"
+
+if [ "$quick" != --quick ] && [ -x "$dir/test.sh" ]; then
+  "$dir/test.sh"
+fi
+echo "$recipe: tests passed"

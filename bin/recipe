@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# shellcheck source=lib/common.sh
+source "$(dirname "$0")/../lib/common.sh"
+[ $# = 2 ] || die "usage: bin/recipe <recipe> <yq expression | tag>"
+if [ "$2" = tag ]; then recipe_tag "$1"; else recipe_get "$1" "$2"; fi

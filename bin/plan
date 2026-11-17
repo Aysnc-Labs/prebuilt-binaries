@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# shellcheck source=lib/common.sh
+source "$(dirname "$0")/../lib/common.sh"
+[ $# -ge 1 ] || die "usage: bin/plan <recipe>... | all | changed <base ref>"
+
+case "$1" in
+  all) recipes="$(all_recipes)" ;;
+  changed)
+    [ $# = 2 ] || die "usage: bin/plan changed <base ref>"
+    if ! git -C "$ROOT" cat-file -e "$2^{commit}" 2>/dev/null; then
+      recipes="$(all_recipes)"
+    else
+      files="$(git -C "$ROOT" diff --name-only "$2"...HEAD)"
+      if grep -qE '^(bin/|lib/|recipes/targets\.yaml|\.github/workflows/|mise\.toml)' <<<"$files"; then
+        recipes="$(all_recipes)"
+      else
+        recipes="$({ grep -oE '^recipes/[^/]+/' <<<"$files" || true; } | cut -d/ -f2 | sort -u |
+          while read -r r; do if [ -f "$ROOT/recipes/$r/recipe.yaml" ]; then echo "$r"; fi; done)"
+      fi
+    fi
+    ;;
+  *) recipes="$*" ;;
+esac
+
+builds="[]" tags="[]"
+for r in $recipes; do
+  tag="$(recipe_tag "$r")" cache="$(recipe_get "$r" .cache)"
+  tags="$(jq -c --arg r "$r" --arg t "$tag" '. + [{recipe: $r, tag: $t}]' <<<"$tags")"
+  while read -r t; do
+    runner="$(recipe_get "$r" ".runners.\"$t\"")"
+    [ -n "$runner" ] || runner="$(yq -r ".\"$t\".runner // \"\"" "$ROOT/recipes/targets.yaml")"
+    [ -n "$runner" ] || die "$r: unknown target $t"
+    container="$(yq -r ".\"$t\".test-container // \"\"" "$ROOT/recipes/targets.yaml")"
+    builds="$(jq -c --arg r "$r" --arg t "$t" --arg run "$runner" --arg c "$container" --arg cache "$cache" \
+      '. + [{recipe: $r, target: $t, runner: $run, test_container: $c, cache: $cache}]' <<<"$builds")"
+  done < <(recipe_get "$r" '.targets[]')
+done
+jq -nc --argjson b "$builds" --argjson r "$tags" '{builds: $b, recipes: $r}'

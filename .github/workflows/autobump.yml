@@ -1,0 +1,67 @@
+name: autobump
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+    inputs:
+      recipes:
+        description: Recipes to check, space-separated, or `all`
+        default: all
+
+concurrency:
+  group: autobump
+
+permissions:
+  contents: read
+
+jobs:
+  bump:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    outputs:
+      bumps: ${{ steps.bump.outputs.bumps }}
+    env:
+      GITHUB_TOKEN: ${{ github.token }}
+      RECIPES: ${{ inputs.recipes || 'all' }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+      - uses: jdx/mise-action@236a21c3b91f5db6d4e174b348674a0f0caac06d # v5.2.9
+      - id: bump
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          if [ "$RECIPES" = all ]; then RECIPES="$(cd recipes && for d in */recipe.yaml; do dirname "$d"; done)"; fi
+          bumps='[]'
+          for recipe in $RECIPES; do
+            git checkout -q main
+            tag="$(bin/bump "$recipe")"
+            if [ -z "$tag" ]; then echo "$recipe: up to date"; continue; fi
+            git switch -q -C "autobump/$recipe"
+            git commit -qam "Bump $recipe to $tag"
+            git push -qf origin "autobump/$recipe"
+            bumps="$(jq -c --arg r "$recipe" --arg s "$(git rev-parse HEAD)" '. + [{recipe: $r, ref: $s}]' <<<"$bumps")"
+            echo "$recipe: $tag on autobump/$recipe"
+          done
+          echo "bumps=$bumps" >> "$GITHUB_OUTPUT"
+
+  release:
+    needs: bump
+    if: needs.bump.outputs.bumps != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.bump.outputs.bumps) }}
+    uses: ./.github/workflows/_release.yml
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+    with:
+      recipes: ${{ matrix.recipe }}
+      ref: ${{ matrix.ref }}
+      promote: true

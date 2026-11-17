@@ -1,0 +1,31 @@
+name: ci
+
+on:
+  push:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: jdx/mise-action@236a21c3b91f5db6d4e174b348674a0f0caac06d # v5.2.9
+      - run: bin/validate
+
+  recipes:
+    uses: ./.github/workflows/_build.yml
+    permissions:
+      contents: read
+    with:
+      recipes: >-
+        ${{ github.event_name == 'workflow_dispatch' && 'all'
+        || format('changed {0}', github.ref == 'refs/heads/main' && github.event.before || 'origin/main') }}

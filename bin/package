@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# shellcheck source=lib/common.sh
+source "$(dirname "$0")/../lib/common.sh"
+[ $# -ge 1 ] || die "usage: bin/package <recipe> [--fetch-only]"
+recipe=$1 fetch_only="${2:-}"
+dir="$(recipe_dir "$recipe")"
+TARGET="$(host_target)"
+targets="$(recipe_get "$recipe" '.targets[]')"
+grep -qx "$TARGET" <<<"$targets" || die "$recipe doesn't build for $TARGET"
+VERSION="$(recipe_get "$recipe" .version)"
+tag="$(recipe_tag "$recipe")"
+base="$ROOT/.work/$recipe/$TARGET"
+WORK="$base/work" CACHE="$base/cache" OUT="$base/out" SRC=""
+rm -rf "$WORK" "$OUT"
+mkdir -p "$WORK" "$CACHE" "$OUT"
+
+git_url="$(recipe_get "$recipe" .source.git)"
+if [ -n "$git_url" ]; then
+  SRC="$base/src"
+  ref="$(expand "$recipe" "$(recipe_get "$recipe" .source.ref)")"
+  [ -d "$SRC/.git" ] || git init -q "$SRC"
+  git -C "$SRC" fetch -q --depth 1 "$git_url" "$ref"
+  git -C "$SRC" -c advice.detachedHead=false checkout -qf FETCH_HEAD
+  git -C "$SRC" clean -fdq
+fi
+url="$(recipe_get "$recipe" .source.url)"
+if [ -n "$url" ]; then
+  SRC="$base/src"
+  url="$(expand "$recipe" "$url")"
+  rm -rf "$SRC" && mkdir -p "$SRC"
+  curl -fsSL --retry 3 -o "$base/source.tar" "$url"
+  tar -xf "$base/source.tar" -C "$SRC" --strip-components=1
+  rm "$base/source.tar"
+fi
+[ "$fetch_only" != --fetch-only ] || exit 0
+
+export ROOT VERSION TARGET SRC WORK CACHE OUT
+echo "Building $tag for $TARGET"
+"$dir/build.sh"
+
+while read -r bin; do
+  [ -x "$OUT/bin/$bin" ] || die "build.sh didn't produce bin/$bin"
+done < <(recipe_get "$recipe" '.binaries[]')
+[ -f "$OUT/LICENSE" ] || die "build.sh didn't produce LICENSE"
+
+mkdir -p "$ROOT/dist"
+asset="$tag-$TARGET.tar.gz"
+tar -C "$OUT" -czf "$ROOT/dist/$asset" .
+(cd "$ROOT/dist" && sha256 "$asset" > "$asset.sha256" && cat "$asset.sha256")

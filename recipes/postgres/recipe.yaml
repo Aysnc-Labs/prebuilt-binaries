@@ -1,0 +1,40 @@
+name: postgres
+version: "18.7"
+revision: 0
+description: PostgreSQL with its contrib modules and popular extensions, its libraries bundled
+homepage: https://www.postgresql.org
+license: PostgreSQL
+source:
+  url: https://ftp.postgresql.org/pub/source/v{version}/postgresql-{version}.tar.gz
+binaries: [postgres, psql, initdb, pg_ctl, pg_dump, pg_restore, pg_config, pg_repack]
+targets: [macos-arm64, linux-x64, linux-arm64]
+runners:
+  linux-x64: ubuntu-22.04
+  linux-arm64: ubuntu-22.04-arm
+build-deps:
+  apt: [build-essential, bison, flex, cmake, libssl-dev, libicu-dev, liblz4-dev, libzstd-dev, libxml2-dev, libxslt1-dev, libedit-dev, uuid-dev, zlib1g-dev, pkg-config, patchelf, libgeos-dev, libproj-dev, proj-data, libjson-c-dev, libprotobuf-c-dev, protobuf-c-compiler]
+  brew: [openssl@3, icu4c, lz4, zstd, libxml2, libxslt, pkgconf, cmake, geos, proj, json-c, protobuf-c]
+test: [postgres --version, "^postgres \\(PostgreSQL\\) {version}$"]
+extensions:
+  pgvector: {repo: pgvector/pgvector, tag: v0.8.7}
+  pg_cron: {repo: citusdata/pg_cron, tag: v1.6.8}
+  pg_partman: {repo: pgpartman/pg_partman, tag: v5.5.0}
+  pg_hint_plan: {repo: ossc-db/pg_hint_plan, tag: REL18_1_8_1}
+  hypopg: {repo: HypoPG/hypopg, tag: 1.4.5}
+  pgaudit: {repo: pgaudit/pgaudit, tag: "18.0"}
+  pg_repack: {repo: reorg/pg_repack, tag: ver_1.5.3}
+  wal2json: {repo: eulerto/wal2json, tag: wal2json_2_7}
+  timescaledb: {repo: timescale/timescaledb, tag: 2.32.0, build: bootstrap}
+  postgis: {url: "https://download.osgeo.org/postgis/source/postgis-{tag}.tar.gz", tag: 3.7.0, build: configure}
+updates:
+  - {field: .version, type: postgres, series: "18"}
+  - {field: .extensions.pgvector.tag, type: git-tag, repo: https://github.com/pgvector/pgvector.git, pattern: '^(v[0-9]+\.[0-9]+\.[0-9]+)$'}
+  - {field: .extensions.pg_cron.tag, type: git-tag, repo: https://github.com/citusdata/pg_cron.git, pattern: '^(v[0-9]+\.[0-9]+\.[0-9]+)$'}
+  - {field: .extensions.pg_partman.tag, type: git-tag, repo: https://github.com/pgpartman/pg_partman.git, pattern: '^(v[0-9]+\.[0-9]+\.[0-9]+)$'}
+  - {field: .extensions.pg_hint_plan.tag, type: git-tag, repo: https://github.com/ossc-db/pg_hint_plan.git, pattern: '^(REL18_[0-9]+_[0-9]+_[0-9]+)$'}
+  - {field: .extensions.hypopg.tag, type: git-tag, repo: https://github.com/HypoPG/hypopg.git, pattern: '^([0-9]+\.[0-9]+\.[0-9]+)$'}
+  - {field: .extensions.pgaudit.tag, type: git-tag, repo: https://github.com/pgaudit/pgaudit.git, pattern: '^(18\.[0-9]+)$'}
+  - {field: .extensions.pg_repack.tag, type: git-tag, repo: https://github.com/reorg/pg_repack.git, pattern: '^(ver_[0-9]+\.[0-9]+\.[0-9]+)$'}
+  - {field: .extensions.wal2json.tag, type: git-tag, repo: https://github.com/eulerto/wal2json.git, pattern: '^(wal2json_[0-9]+_[0-9]+)$'}
+  - {field: .extensions.timescaledb.tag, type: git-tag, repo: https://github.com/timescale/timescaledb.git, pattern: '^([0-9]+\.[0-9]+\.[0-9]+)$'}
+  - {field: .extensions.postgis.tag, type: git-tag, repo: https://github.com/postgis/postgis.git, pattern: '^([0-9]+\.[0-9]+\.[0-9]+)$'}

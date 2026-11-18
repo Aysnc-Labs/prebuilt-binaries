@@ -48,7 +48,7 @@ Paths: recipes/neon-proxy/
 
 ### Redis
 
-Purpose: Redis with the JSON, Search, TimeSeries and Bloom modules, proven against Laravel, Next.js and NestJS clients
+Purpose: Redis server and CLI, proven against the Laravel, Next.js and NestJS clients
 Entry: `mise.toml`: `"github:aysnc-labs/prebuilt-binaries" = ["redis-<version>"]`
 Paths: recipes/redis/
 

@@ -40,6 +40,6 @@ To check an archive by hand, run `gh attestation verify <archive> --repo aysnc-l
 | [PHP](recipes/php) | PHP CLI and FPM, static, with the extensions WordPress and Laravel use |
 | [PostgreSQL](recipes/postgres) | PostgreSQL with its contrib modules, PostGIS, TimescaleDB, pgvector and more |
 | [neon-proxy](recipes/neon-proxy) | Neon's proxy, with the Postgres auth backend for local development |
-| [Redis](recipes/redis) | Redis with the JSON, Search, TimeSeries and Bloom modules loaded |
+| [Redis](recipes/redis) | Redis server, CLI, benchmark and Sentinel |
 
 Each tool keeps its own license.

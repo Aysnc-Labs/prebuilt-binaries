@@ -1,10 +1,10 @@
 [tools]
-yq = "4"
-shellcheck = "0.11"
-actionlint = "1"
-jq = "1"
-node = "24"
-lefthook = "2"
+yq = "latest"
+shellcheck = "latest"
+actionlint = "latest"
+jq = "latest"
+node = "latest"
+lefthook = "latest"
 
 [hooks]
 postinstall = "lefthook install"

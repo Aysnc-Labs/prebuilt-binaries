@@ -14,9 +14,9 @@ if ! command -v mise >/dev/null; then
   export PATH="$HOME/.local/bin:$PATH"
 fi
 postgres="github:aysnc-labs/prebuilt-binaries@$("$ROOT/bin/recipe" postgres tag)"
-mise install -q "$postgres" node@24
+mise install -q "$postgres" node@latest
 PGBIN="$(mise where "$postgres")/bin"
-NODEBIN="$(mise where node@24)/bin"
+NODEBIN="$(mise where node@latest)/bin"
 export PATH="$PGBIN:$NODEBIN:$PATH"
 
 run_pg() { "$@"; }

@@ -1,0 +1,19 @@
+name: redis
+version: 8.10.3
+revision: 0
+description: Redis server and CLI, for local development and tests
+homepage: https://redis.io
+license: AGPL-3.0-only OR SSPL-1.0 OR LicenseRef-RSALv2
+source:
+  url: https://download.redis.io/releases/redis-{version}.tar.gz
+  sha256: "edde778f6bdee7581e42fc139ca9e07e2822212092f7501f99989656e3629d02"
+binaries: [redis-server, redis-cli, redis-benchmark, redis-check-aof, redis-check-rdb, redis-sentinel]
+targets: [macos-arm64, linux-x64, linux-arm64]
+build-deps:
+  apt: [build-essential]
+test: [redis-server --version, "^Redis server v={version} "]
+updates:
+  - field: .version
+    type: git-tag
+    repo: https://github.com/redis/redis.git
+    pattern: ^([0-9]+\.[0-9]+\.[0-9]+)$

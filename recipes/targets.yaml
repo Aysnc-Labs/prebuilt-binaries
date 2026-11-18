@@ -1,8 +1,8 @@
 macos-arm64:
   runner: macos-latest
 linux-x64:
-  runner: ubuntu-24.04
-  test-container: ubuntu:24.04
+  runner: ubuntu-latest
+  test-container: ubuntu:latest
 linux-arm64:
   runner: ubuntu-24.04-arm
-  test-container: ubuntu:24.04
+  test-container: ubuntu:latest

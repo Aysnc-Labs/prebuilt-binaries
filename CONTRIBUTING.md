@@ -31,15 +31,14 @@
    - `source` is optional: a `git` repo, `ref` and the `commit` that ref must be, or a tarball `url` and its `sha256`. It's fetched into `$SRC` before `build.sh` runs, with `{version}` replaced.
    - Every other download is an entry with a `url` and a `sha256`, fetched with `bin/fetch <tool> <entry path> <file>`, which refuses a file that doesn't match. A url can use `{version}`, the entry's `{tag}`, and any field as `{.path.to.field}`.
    - `bin/lock <tool>` fills in every `sha256` and `commit`. `bin/bump` runs it after moving a pin, and `bin/validate` fails on a missing one.
-   - `runners` is optional: a runner per target, overriding `recipes/targets.yaml` (e.g. an older Ubuntu for an older glibc floor).
    - `targets` come from `recipes/targets.yaml`. `build-deps` (apt, brew) is optional.
    - `cache` is optional: `rust` keeps cargo's `target/`, `dir` keeps `$CACHE`.
    - `test` is a command, and an extended regex its output must match.
    - `updates` is what autobump checks. Each names a `field` and a `type`: `git-tag` (`repo`, and a `pattern` whose first group is the value), `github-release` (`repo: owner/name`), `php` (`series: "8.5"`) or `postgres` (`series: "18"`).
 
-2. Write `build.sh`. A build that links shared libraries can run `python3 -I "$ROOT/lib/bundle.py" "$OUT"` last: it copies every non-system library into `$OUT/lib`, with its licence, and points the binaries at it. It gets `ROOT`, `VERSION`, `TARGET`, `SRC`, `WORK`, `CACHE` and `OUT`, and must leave `$OUT/bin/<binaries>` and `$OUT/LICENSE`. Put the licences of anything bundled in `$OUT/licenses/`. Build the most portable binary you can: static, or against the oldest glibc you can.
+2. Write `build.sh`. A build that links shared libraries can run `python3 -I "$ROOT/lib/bundle.py" "$OUT"` last: it copies every non-system library into `$OUT/lib`, with its licence, and points the binaries at it. It gets `ROOT`, `VERSION`, `TARGET`, `SRC`, `WORK`, `CACHE` and `OUT`, and must leave `$OUT/bin/<binaries>` and `$OUT/LICENSE`. Put the licences of anything bundled in `$OUT/licenses/`. Builds run on the latest runners in `recipes/targets.yaml`; link statically or bundle libraries, so the archive runs in a bare test container.
 
-3. If `--version` doesn't prove much, add `test.sh`. It gets `BIN_DIR` with the binaries, which are also first on `PATH`. On Linux, CI runs it as root in a bare `ubuntu:24.04`.
+3. If `--version` doesn't prove much, add `test.sh`. It gets `BIN_DIR` with the binaries, which are also first on `PATH`. On Linux, CI runs it as root in a bare `ubuntu:latest`.
 
 4. Try it: `bin/validate`, then `bin/ci <tool>` on your Mac and `bin/ci <tool> --linux` in a Linux sandbox ([sbx](https://docs.docker.com/ai/sandboxes/)). The sandbox only sees commits.
 

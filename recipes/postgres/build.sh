@@ -38,8 +38,8 @@ for ext in $(recipe '.extensions | keys | .[]'); do
         -DWARNINGS_AS_ERRORS=OFF -DSEND_TELEMETRY_DEFAULT=OFF ${cmake_extra[@]+"${cmake_extra[@]}"} && make -C build -j"$jobs" && make -C build install)
       ;;
     *)
-      make -C "$WORK/$ext" -j"$jobs" USE_PGXS=1 PG_CONFIG="$pg_config"
-      make -C "$WORK/$ext" install USE_PGXS=1 PG_CONFIG="$pg_config"
+      make -C "$WORK/$ext" -j"$jobs" USE_PGXS=1 PG_CONFIG="$pg_config" OPTFLAGS=""
+      make -C "$WORK/$ext" install USE_PGXS=1 PG_CONFIG="$pg_config" OPTFLAGS=""
       ;;
   esac
   mkdir -p "$OUT/licenses/$ext"

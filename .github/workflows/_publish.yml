@@ -88,7 +88,7 @@ jobs:
       RECIPE: ${{ matrix.recipe }}
     steps:
       - if: matrix.test_container != ''
-        run: apt-get update -qq && apt-get install -y -qq git curl ca-certificates xz-utils >/dev/null
+        run: apt-get update -qq && apt-get install -y -qq git curl ca-certificates xz-utils libatomic1 >/dev/null
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ inputs.sha }}

@@ -8,7 +8,7 @@ PG_USER=pgsmoke
 
 if ! command -v mise >/dev/null; then
   if [ "$(uname)" = Linux ] && [ "$(id -u)" = 0 ]; then
-    apt-get update -qq && apt-get install -y -qq curl ca-certificates >/dev/null
+    apt-get update -qq && apt-get install -y -qq curl ca-certificates libatomic1 >/dev/null
   fi
   for i in 1 2 3; do curl -fsSL https://mise.run | sh >/dev/null && break; [ $i = 3 ] && exit 1; sleep 10; done
   export PATH="$HOME/.local/bin:$PATH"

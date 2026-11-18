@@ -30,7 +30,7 @@ jobs:
       matrix:
         include: ${{ fromJSON(inputs.recipes) }}
     name: release (${{ matrix.tag }})
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     permissions:
       contents: write
       id-token: write
@@ -106,7 +106,7 @@ jobs:
   promote:
     needs: install
     if: inputs.promote
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     permissions:
       contents: write
     env:

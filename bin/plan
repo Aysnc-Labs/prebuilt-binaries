@@ -28,8 +28,7 @@ for r in $recipes; do
   tag="$(recipe_tag "$r")" cache="$(recipe_get "$r" .cache)"
   tags="$(jq -c --arg r "$r" --arg t "$tag" '. + [{recipe: $r, tag: $t}]' <<<"$tags")"
   while read -r t; do
-    runner="$(recipe_get "$r" ".runners.\"$t\"")"
-    [ -n "$runner" ] || runner="$(yq -r ".\"$t\".runner // \"\"" "$ROOT/recipes/targets.yaml")"
+    runner="$(yq -r ".\"$t\".runner // \"\"" "$ROOT/recipes/targets.yaml")"
     [ -n "$runner" ] || die "$r: unknown target $t"
     container="$(yq -r ".\"$t\".test-container // \"\"" "$ROOT/recipes/targets.yaml")"
     builds="$(jq -c --arg r "$r" --arg t "$t" --arg run "$runner" --arg c "$container" --arg cache "$cache" \

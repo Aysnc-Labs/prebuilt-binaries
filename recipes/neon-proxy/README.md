@@ -26,7 +26,7 @@ The driver then needs four settings:
 - a `localhost` host in the connection string, not an IP;
 - `?options=endpoint%3Dlocal` in the connection string.
 
-[`test.sh`](test.sh) runs the whole stack. CI runs it on every target, and on Linux it runs as root in a bare `ubuntu:24.04` container.
+[`test.sh`](test.sh) runs the whole stack. CI runs it on every target, and on Linux it runs as root in a bare `ubuntu:latest` container.
 
 By default the proxy also listens on 4432 (`--proxy`), 7000 (`--mgmt`) and 7001 (`--http`). Set them explicitly to run more than one.
 

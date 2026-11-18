@@ -6,7 +6,7 @@ Redis with the modules the official `redis:8` image loads: JSON, Search (the Que
 
 How it's built:
 
-- On Linux it's built on Ubuntu 22.04 with GCC 12, for a glibc 2.35 floor. OpenSSL, which TimeSeries and Search link, is bundled into `lib/`.
+- OpenSSL, which TimeSeries and Search link, is bundled into `lib/`.
 - RediSearch is built without LTO. Its LTO build needs Clang and lld at the LLVM version of its Rust toolchain.
 - RediSearch's CMake would download Boost unpinned, so the recipe fetches it by sha256 into the folder RediSearch looks in first. If a new Redis wants another Boost, the build stops and names it. Move `boost.tag` and run `bin/lock redis`.
 - Rust crates for JSON and Search come from crates.io, checked against each module's `Cargo.lock`.

@@ -9,9 +9,6 @@ source:
   sha256: "19c2dc7d8520e10532d082b43c36c4d2dcc6cd9e40506c6f598e7338f84bbde7"
 binaries: [postgres, psql, initdb, pg_ctl, pg_dump, pg_restore, pg_config, pg_repack]
 targets: [macos-arm64, linux-x64, linux-arm64]
-runners:
-  linux-x64: ubuntu-22.04
-  linux-arm64: ubuntu-22.04-arm
 build-deps:
   apt: [build-essential, bison, flex, cmake, libssl-dev, libicu-dev, liblz4-dev, libzstd-dev, libxml2-dev, libxslt1-dev, libedit-dev, uuid-dev, zlib1g-dev, pkg-config, patchelf, libgeos-dev, libproj-dev, proj-data, libjson-c-dev, libprotobuf-c-dev, protobuf-c-compiler]
   brew: [openssl@3, icu4c, lz4, zstd, libxml2, libxslt, pkgconf, cmake, geos, proj, json-c, protobuf-c]

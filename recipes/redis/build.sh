@@ -7,8 +7,6 @@ if [ "$(uname)" = Darwin ]; then
   openssl="$(brew --prefix openssl@3)"
   PATH="$openssl/bin:$PATH"
   export PKG_CONFIG_PATH="$openssl/lib/pkgconfig"
-else
-  export CC=gcc-12 CXX=g++-12
 fi
 cd "$SRC"
 

@@ -1,5 +1,5 @@
 name: php
-version: 8.5.12
+version: 8.5.13
 revision: 0
 description: PHP CLI and FPM with the extensions WordPress and Laravel use
 homepage: https://www.php.net
@@ -10,7 +10,7 @@ cache: dir
 test: [php -v, "^PHP {version} "]
 php-src:
   url: https://www.php.net/distributions/php-{version}.tar.xz
-  sha256: "08bc2eba2a588654ade1357174aa646b761556c862dda0678345ee29ed481209"
+  sha256: "607602acaf0c3061818e9916ec44a058e8b3d43959a83862b9cd3ec7bf5b785f"
 composer:
   version: 2.11.2
   url: https://getcomposer.org/download/{.composer.version}/composer.phar

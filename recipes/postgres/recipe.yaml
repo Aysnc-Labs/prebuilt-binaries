@@ -1,6 +1,6 @@
 name: postgres
 version: "18.7"
-revision: 1
+revision: 2
 description: PostgreSQL with its contrib modules and popular extensions, its libraries bundled
 homepage: https://www.postgresql.org
 license: PostgreSQL
@@ -22,7 +22,7 @@ extensions:
   pgaudit: {url: "https://github.com/pgaudit/pgaudit/archive/refs/tags/{tag}.tar.gz", tag: "18.1", sha256: "f585ef3c741d7bad322b69c9c917b9ed79c800f15460f585be4cc96ef3f8ce0f"}
   pg_repack: {url: "https://github.com/reorg/pg_repack/archive/refs/tags/{tag}.tar.gz", tag: ver_1.5.3, sha256: "9439892c0b7c7575677f61133e5692f3e8cfd5c6688c5db4fb202320c668c745"}
   wal2json: {url: "https://github.com/eulerto/wal2json/archive/refs/tags/{tag}.tar.gz", tag: wal2json_2_7, sha256: "e6c12d02dc32e4d610dce33ee52ea85a54e12a563e79c4844508b6c061ff07a1"}
-  timescaledb: {url: "https://github.com/timescale/timescaledb/archive/refs/tags/{tag}.tar.gz", tag: 2.32.0, build: bootstrap, sha256: "881b07882719b53b1fe08753a514c5717baaf9644698fd12d58f63a6a86f4ba0"}
+  timescaledb: {url: "https://github.com/timescale/timescaledb/archive/refs/tags/{tag}.tar.gz", tag: 2.32.1, build: bootstrap, sha256: "c49c9615b2b6623f1c3ad2813b850d4c577d6c65c43bb8eee4b255e1e1af4a9f"}
   postgis: {url: "https://download.osgeo.org/postgis/source/postgis-{tag}.tar.gz", tag: 3.7.0, build: configure, sha256: "832bbf50f2b6f57fab053bc9676b3bfe641e5bf966cdcb28c7926f8d4b3c5e04"}
 updates:
   - {field: .version, type: postgres, series: "18"}

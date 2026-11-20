@@ -1,6 +1,6 @@
 name: redis
 version: 8.10.3
-revision: 0
+revision: 1
 description: Redis server and CLI, for local development and tests
 homepage: https://redis.io
 license: AGPL-3.0-only OR SSPL-1.0 OR LicenseRef-RSALv2

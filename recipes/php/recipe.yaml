@@ -6,6 +6,8 @@ homepage: https://www.php.net
 license: PHP-3.01
 binaries: [php, php-fpm]
 targets: [macos-arm64, linux-x64, linux-arm64]
+build-deps:
+  apt: [sudo]
 cache: dir
 test: [php -v, "^PHP {version} "]
 php-src:

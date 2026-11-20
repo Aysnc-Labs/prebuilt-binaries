@@ -13,3 +13,11 @@ else
   # shellcheck disable=SC2086
   [ -z "$pkgs" ] || { $sudo apt-get update -qq && $sudo apt-get install -y --no-install-recommends $pkgs; }
 fi
+
+if [ -n "$(recipe_get "$1" .rustup.version)" ] && ! command -v rustup >/dev/null; then
+  init="$(mktemp -d)/rustup-init"
+  "$ROOT/bin/fetch" "$1" ".rustup.downloads.\"$(host_target)\"" "$init"
+  chmod +x "$init"
+  "$init" -y --no-modify-path --profile minimal --default-toolchain none
+  [ -z "${GITHUB_PATH:-}" ] || echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+fi

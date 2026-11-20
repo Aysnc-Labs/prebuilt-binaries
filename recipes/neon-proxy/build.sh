@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+export PATH="$HOME/.cargo/bin:$PATH"
 cd "$SRC"
 rustup show active-toolchain >/dev/null 2>&1 || rustup toolchain install
 cargo build --locked --release -p proxy --bin proxy --features testing

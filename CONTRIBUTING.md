@@ -32,6 +32,7 @@
    - Every other download is an entry with a `url` and a `sha256`, fetched with `bin/fetch <tool> <entry path> <file>`, which refuses a file that doesn't match. A url can use `{version}`, the entry's `{tag}`, and any field as `{.path.to.field}`.
    - `bin/lock <tool>` fills in every `sha256` and `commit`. `bin/bump` runs it after moving a pin, and `bin/validate` fails on a missing one.
    - `targets` come from `recipes/targets.yaml`. `build-deps` (apt, brew) is optional.
+   - `rustup` is optional: a `version` and per-target `downloads` of `rustup-init`, which `bin/deps` installs where the machine has no rustup.
    - `cache` is optional: `rust` keeps cargo's `target/`, `dir` keeps `$CACHE`.
    - `test` is a command, and an extended regex its output must match.
    - `updates` is what autobump checks. Each names a `field` and a `type`: `git-tag` (`repo`, and a `pattern` whose first group is the value), `github-release` (`repo: owner/name`), `php` (`series: "8.5"`) or `postgres` (`series: "18"`).

@@ -7,7 +7,7 @@ cargo build --locked --release -p proxy --bin proxy --features testing
 ```
 
 - `--features testing` adds `--auth-backend=postgres`, which reads roles from a plain Postgres instead of Neon's control plane.
-- The toolchain comes from Neon's `rust-toolchain.toml`. The binary is stripped and renamed `neon-proxy`, and each archive carries Neon's `LICENSE`.
+- The toolchain comes from Neon's `rust-toolchain.toml`. Where the build container has no rustup, the build installs the pinned `rustup` first. The binary is stripped and renamed `neon-proxy`, and each archive carries Neon's `LICENSE`.
 - No certificate is built in. Started without `--tls-key`/`--tls-cert`, the proxy serves plain WebSocket, so nothing expires. If you want TLS, generate a certificate when you start it.
 - The version is Neon's proxy release number: upstream tag `release-proxy-<version>`. autobump follows new ones.
 
@@ -26,7 +26,7 @@ The driver then needs four settings:
 - a `localhost` host in the connection string, not an IP;
 - `?options=endpoint%3Dlocal` in the connection string.
 
-[`test.sh`](test.sh) runs the whole stack. CI runs it on every target, and on Linux it runs as root in a bare `ubuntu:latest` container.
+[`test.sh`](test.sh) runs the whole stack. CI runs it on every target, and on Linux it runs as root in a bare `ubuntu:22.04` container.
 
 By default the proxy also listens on 4432 (`--proxy`), 7000 (`--mgmt`) and 7001 (`--http`). Set them explicitly to run more than one.
 

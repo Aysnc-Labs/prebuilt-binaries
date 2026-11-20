@@ -30,9 +30,9 @@ for r in $recipes; do
   while read -r t; do
     runner="$(yq -r ".\"$t\".runner // \"\"" "$ROOT/recipes/targets.yaml")"
     [ -n "$runner" ] || die "$r: unknown target $t"
-    container="$(yq -r ".\"$t\".test-container // \"\"" "$ROOT/recipes/targets.yaml")"
+    container="$(yq -r ".\"$t\".container // \"\"" "$ROOT/recipes/targets.yaml")"
     builds="$(jq -c --arg r "$r" --arg t "$t" --arg run "$runner" --arg c "$container" --arg cache "$cache" \
-      '. + [{recipe: $r, target: $t, runner: $run, test_container: $c, cache: $cache}]' <<<"$builds")"
+      '. + [{recipe: $r, target: $t, runner: $run, container: $c, cache: $cache}]' <<<"$builds")"
   done < <(recipe_get "$r" '.targets[]')
 done
 jq -nc --argjson b "$builds" --argjson r "$tags" '{builds: $b, recipes: $r}'

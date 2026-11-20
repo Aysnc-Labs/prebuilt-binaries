@@ -1,6 +1,6 @@
 name: postgres
 version: "18.7"
-revision: 2
+revision: 3
 description: PostgreSQL with its contrib modules and popular extensions, its libraries bundled
 homepage: https://www.postgresql.org
 license: PostgreSQL

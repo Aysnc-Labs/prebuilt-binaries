@@ -2,7 +2,7 @@ macos-arm64:
   runner: macos-latest
 linux-x64:
   runner: ubuntu-latest
-  test-container: ubuntu:latest
+  container: ubuntu:22.04
 linux-arm64:
   runner: ubuntu-24.04-arm
-  test-container: ubuntu:latest
+  container: ubuntu:22.04

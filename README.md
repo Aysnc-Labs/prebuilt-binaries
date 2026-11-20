@@ -12,7 +12,7 @@ and signed with a GitHub artifact attestation.
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Install with mise](https://img.shields.io/badge/install%20with-mise-black)](https://mise.jdx.dev)
 
-<sub>macOS arm64 &nbsp;·&nbsp; Linux x64 &nbsp;·&nbsp; Linux arm64</sub>
+<sub>macOS arm64 &nbsp;·&nbsp; Linux x64 &nbsp;·&nbsp; Linux arm64<br>Linux needs glibc 2.35+: Ubuntu 22.04 or newer</sub>
 
 </div>
 

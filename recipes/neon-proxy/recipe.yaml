@@ -24,6 +24,7 @@ rustup:
       url: https://static.rust-lang.org/rustup/archive/{.rustup.version}/aarch64-unknown-linux-gnu/rustup-init
       sha256: "9f608c142e0e38a78957d0661ba1dfaf0b6fb37184cfaa4b9a0aa57af6184282"
 test: [neon-proxy --help, "possible values:.*postgres"]
+test-postgres: postgres-18.7-1
 updates:
   - field: .version
     type: git-tag
